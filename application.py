@@ -21,10 +21,10 @@ Session(app)
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 
-@app.route("/book/<int:isbn>")
+@app.route("/book/<isbn>", methods=["GET"])
 def get_book_info(isbn):
     #make sure isbn exists in database
-    book = db.execute("SELECT * FROM books WHERE isbn = isbn", {"isbn": isbn}).fetchone()
+    book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
     if book is None:
         return render_template("error.html", message="No book in database for that isbn.")
 
