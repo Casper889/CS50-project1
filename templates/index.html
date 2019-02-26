@@ -1,4 +1,6 @@
-<!doctype html>
+{% extends "base.html" %}
+
+{% block body %}
 <table>
 <tr>
   <th>isbn</th>
@@ -8,10 +10,11 @@
 </tr>
 {% for book in books %}
 <tr>
-  <td>{{ book[0] }}</td>
   <td>{{ book[1] }}</td>
   <td>{{ book[2] }}</td>
   <td>{{ book[3] }}</td>
+  <td>{{ book[4] }}</td>
 </tr>
 {% endfor %}
 </table>
+{% endblock %}
