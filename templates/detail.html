@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+
+{% block body %}
+    <h1>Book Details:</h1>
+    <p>
+    ISBN: {{ book.isbn }}<br>
+    Title: {{ book.title }}<br>
+    Author: {{ book.author }}<br>
+    Year: {{ book.year }}<br>
+    </p>
+
+    <br><h3>From Goodreads:</h3>
+    <p>
+    Total Number of Ratings : {{ ratings_count }} <br>
+    Average Rating : {{ average_rating }}<br>
+    </p>
+
+{% endblock %}
