@@ -1,7 +1,7 @@
 import requests
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, session, request, render_template, jsonify
+from flask import Flask, render_template, request, jsonify, session
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -97,7 +97,7 @@ def logout():
     try:
         session.pop("user_email")
     except KeyError:
-        return render_template("login.html", work="Login", error_message="Please Login First")
+        return render_template("login.html", workRHUix4sDcDH9V9PfN3jqg="Login", error_message="Please Login First")
     return render_template("home.html", status="Loggedout")
 
 @app.route("/booklist", methods=["POST"])
@@ -115,15 +115,16 @@ def booklist():
                                {"query": query.upper()}).fetchall()
 
     # Is whole of the info i.e. ISBN, title matches...
-    if len(book_list):
+
+    if len(book_list) > 1:
         return render_template("booklist.html", book_list=book_list, user_email=session["user_email"])
 
     elif book_column != "year":
-        error_message = "We couldn't find the books you searched for."
+        error_message = "We couldn't find the exact book you searched for, but here are some similar ones."
         book_list = db.execute("SELECT * FROM books WHERE UPPER(" + book_column + ") LIKE :query ORDER BY title",
                                {"query": "%" + query.upper() + "%"}).fetchall()
         if not len(book_list):
-            return render_template("error.html", error_message=error_message)
+            return render_template("booklist.html")
         message = "You might be searching for:"
         return render_template("booklist.html", error_message=error_message, book_list=book_list, message=message,
                                user_email=session["user_email"])
@@ -141,6 +142,7 @@ def detail(book_id):
         return render_template("error.html", error_message="We got an invalid book id"
                                                            ". Please check for the errors and try again.")
 
+
     # When review if submitted for the book.
     if request.method == "POST":
         user_id = session["user_id"]
@@ -157,9 +159,24 @@ def detail(book_id):
                 {"comment": comment, "rating": rating, "user_id": user_id, "book_id": book_id})
         db.commit()
 
+    res = requests.get("https://www.goodreads.com/book/review_counts.json",
+                       params={"key": "RHUix4sDcDH9V9PfN3jqg", "isbns": book.isbn}).json()["books"][0]
+
+    ratings_count = res["ratings_count"]
+    average_rating = res["average_rating"]
+    reviews = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": book.id}).fetchall()
+    users = []
+    for review in reviews:
+        email = db.execute("SELECT email FROM users WHERE id = :user_id", {"user_id": review.user_id}).fetchone().email
+        users.append((email, review))
+
+    return render_template("detail.html", book=book, users=users,
+                           ratings_count=ratings_count, average_rating=average_rating, user_email=session["user_email"])
+
+
 @app.route("/api/<ISBN>", methods=["GET"])
 def api(ISBN):
-    book = db.execute("SELECT * FROM books WHERE isbn = :ISBN", {"ISBN": ISBN}).fetchone()
+    book = db.execute("SELECT * FROM books WHERE isbn = :ISBN", {"isbn": ISBN}).fetchone()
     if book is None:
         return render_template("error.html", error_message="We got an invalid ISBN. "
                                                            "Please check for the errors and try again.")
