@@ -178,8 +178,7 @@ def detail(book_id):
 def api(ISBN):
     book = db.execute("SELECT * FROM books WHERE isbn = :ISBN", {"isbn": ISBN}).fetchone()
     if book is None:
-        return render_template("error.html", error_message="We got an invalid ISBN. "
-                                                           "Please check for the errors and try again.")
+        return render_template("error.html", error_message="Could not find isbn")
     reviews = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": book.id}).fetchall()
     count = 0
     rating = 0
